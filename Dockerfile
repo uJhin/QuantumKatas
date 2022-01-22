@@ -25,6 +25,10 @@ RUN pip install -I --no-cache-dir \
 USER ${USER}
 
 RUN cd ${HOME} && \
+# Install packages needed to submit jobs to hardware separately, since they are not part of any project
+    dir ${HOME}/.nuget/ && \
+    nuget install Microsoft.Quantum.Providers.IonQ ${HOME}/.nuget/packages -Version 0.21.2112180703 && \
+    nuget install Microsoft.Quantum.Providers.Honeywell ${HOME}/.nuget/packages -Version 0.21.2112180703 && \
 # `dotnet restore` for each solution to ensure NuGet cache is fully populated
     for solution in $(find . -type f -name "*.sln"); do dotnet restore "$solution"; done && \
 # Pre-exec notebooks to improve first-use start time
@@ -65,9 +69,6 @@ RUN cd ${HOME} && \
     ./scripts/prebuild-kata.sh tutorials/SingleQubitSystemMeasurements SingleQubitSystemMeasurements.ipynb && \
     # Exclude VisualizationTools, as %debug cell times out in Binder prebuild
     #./scripts/prebuild-kata.sh tutorials/VisualizationTools VisualizationTools.ipynb && \
-# Install packages needed to submit jobs to hardware separately, since they are not part of any project
-    nuget install Microsoft.Quantum.Providers.IonQ ${HOME}/.nuget/packages -Version 0.21.2112180703 && \
-    nuget install Microsoft.Quantum.Providers.Honeywell ${HOME}/.nuget/packages -Version 0.21.2112180703 && \
 # To improve performance when loading packages at IQ# kernel initialization time,
 # we remove all online sources for NuGet such that IQ# Package Loading and NuGet dependency
 # resolution won't attempt to resolve package dependencies again (as it was already done
